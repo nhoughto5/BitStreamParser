@@ -10,20 +10,24 @@
 #include <windows.h>
 #include <AccCtrl.h>
 #include <Aclapi.h>
+#include <set>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <conio.h>
 
 //Command Line : sch2hdl -batch C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/sch2HdlBatchFile
 //Command Line : xst -ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr
-//Command Line : ngdbuild - dd _ngo - nt timestamp - uc item.ucf - p xa3s100e - vqg100 - 4 "item.ngc" item.ngd
+//Command Line : ngdbuild -dd _ngo -nt timestamp -uc item.ucf -p xa3s100e-vqg100-4 item.ngc item.ngd
 //Command Line : C : \Xilinx\14.7\ISE_DS\ISE\bin\nt64\unwrapped\ngdbuild.exe - dd _ngo - nt timestamp - uc item.ucf - p xa3s100e - vqg100 - 4 item.ngc item.ngd
 //Command Line : map - p xa3s100e - vqg100 - 4 - cm area - ir off - pr off - c 100 - o item_map.ncd item.ngd item.pcf
 //Command Line : par - w - ol high - t 1 item_map.ncd item.ncd item.pcf
 //Command Line : trce - v 3 - s 4 - n 3 - fastpaths - xml item.twx item.ncd - o item.twr item.pcf - ucf item.ucf
 //Command Line : bitgen - f item.ut item.ncd
 
-//std::string path = "C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/";
 std::string path = "C:\\Users\\Nick\\Desktop\\NickTop\\HomeWork\\MASc\\FPGAAutomationImplementation\\BitStreamParser\\BitStreamParser\\Xilinx\\SingleItemTest\\";
 std::wstring wPath = L"C:\\Users\\Nick\\Desktop\\NickTop\\HomeWork\\MASc\\FPGAAutomationImplementation\\BitStreamParser\\BitStreamParser\\Xilinx\\SingleItemTest\\";;
-//std::string path = "Xilinx/SingleItemTest/";
+
 void convertSchematicToHDL() {
 	printf("Executing sch2hdl\n");
 	system(("sch2hdl -batch " + path + "sch2HdlBatchFile").c_str());
@@ -71,14 +75,14 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters, size_
 
 	if (CreateProcessW(
 		FullPathToExe.c_str(),
-		pwszParam, 
-		0, 
-		0, 
+		pwszParam,
+		0,
+		0,
 		false,
-		CREATE_DEFAULT_ERROR_MODE, 
-		0, 
+		CREATE_DEFAULT_ERROR_MODE,
+		0,
 		wPath.c_str(),
-		&siStartupInfo, 
+		&siStartupInfo,
 		&piProcessInfo) != false)
 	{
 		/* Watch the process. */
@@ -100,6 +104,7 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters, size_
 
 	return iReturnVal;
 }
+
 void makeDirectories() {
 	std::string outputFolder = path + "xst";
 	CreateDirectoryA(outputFolder.c_str(), NULL);
@@ -176,26 +181,58 @@ void makeInitFiles() {
 	xstFile << "-slice_utilization_ratio_maxmargin 5\n";
 	xstFile.close();
 }
-void deleteResources() {
-	std::remove((path + "item.prj").c_str());
-	std::remove((path + "item.syr").c_str());
-	std::remove((path + "item.xst").c_str());
-	std::remove((path + "item.vhf").c_str());
+
+void deleteResources(std::set<std::string> files) {
+	//std::remove((path + "item.prj").c_str());
+	//std::remove((path + "item.syr").c_str());
+	//std::remove((path + "item.xst").c_str());
+	//std::remove((path + "item.vhf").c_str());
+	for (std::set<std::string>::iterator it = files.begin(); it != files.end(); ++it) {
+		std::remove((path + *it).c_str());
+	}
+}
+std::set<std::string> listOfFiles(std::string fileName) {
+	system(("dir Xilinx\\SingleItemTest /b > " + fileName).c_str());
+	std::ifstream tempFile;
+	tempFile.open(fileName);
+	std::string X;
+	std::set<std::string> fileNameSet;
+	if (tempFile.is_open()) {
+		while (std::getline(tempFile, X)) {
+			fileNameSet.insert(X);
+		}
+	}
+	else {
+		std::cerr << "Failed to open " + fileName + "\n";
+		exit(0);
+	}
+	return fileNameSet;
+}
+std::set<std::string> setDifferences(std::set<std::string> a, std::set<std::string> b) {
+	using namespace std;
+	set<string> result;
+	set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), inserter(result, result.begin()));
+	return result;
 }
 int main()
 {
 	printf("Checking if processor is available...");
 	if (system(NULL)) puts("Ok");
 	else exit(EXIT_FAILURE);
-	deleteResources();
+	std::set<std::string> initialSet = listOfFiles("initialFiles.txt");
 	makeDirectories();
 	makeInitFiles();
 	convertSchematicToHDL();
-	//callXST();
 	std::wstring xstPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\xst.exe";
-	std::wstring args = L"-ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr";
-	//testXST(xstPath, args);
-	ExecuteProcess(xstPath, args, 10);
+	std::wstring ngdPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\ngdbuild.exe";
+	std::wstring xstArgs = L"-ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr";
+	std::wstring ngdArgs = L"-dd _ngo -nt timestamp -uc item.ucf -p xa3s100e-vqg100-4 item.ngc item.ngd";
+	ExecuteProcess(xstPath, xstArgs, 10);
+	ExecuteProcess(ngdPath, ngdArgs, 10);
+	std::set<std::string> afterNGD = listOfFiles("afterNGD.txt");
+	std::set<std::string> result;
+	result = setDifferences(initialSet, afterNGD);
+	deleteResources(result);
 	return 0;
 }
 

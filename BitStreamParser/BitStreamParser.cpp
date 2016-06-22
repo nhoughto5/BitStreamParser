@@ -14,7 +14,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
-#include <conio.h>
+#include <boost/filesystem.hpp>
 
 //Command Line : sch2hdl -batch C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/sch2HdlBatchFile
 //Command Line : xst -ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr
@@ -188,7 +188,7 @@ void deleteResources(std::set<std::string> files) {
 	//std::remove((path + "item.xst").c_str());
 	//std::remove((path + "item.vhf").c_str());
 	for (std::set<std::string>::iterator it = files.begin(); it != files.end(); ++it) {
-		std::remove((path + *it).c_str());
+		boost::filesystem::remove_all((path + *it).c_str());
 	}
 }
 std::set<std::string> listOfFiles(std::string fileName) {

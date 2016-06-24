@@ -180,6 +180,32 @@ void makeInitFiles() {
 	xstFile << "-equivalent_register_removal YES\n";
 	xstFile << "-slice_utilization_ratio_maxmargin 5\n";
 	xstFile.close();
+
+	std::ofstream utFile;
+	utFile.open(path + "item.ut");
+	utFile << "-w\n";
+	utFile << "-g DebugBitstream:No\n";
+	utFile << "-g Binary:yes\n";
+	utFile << "-g CRC:Enable\n";
+	utFile << "-g ConfigRate:1\n";
+	utFile << "-g ProgPin:PullUp\n";
+	utFile << "-g DonePin:PullUp\n";
+	utFile << "-g TckPin:PullUp\n";
+	utFile << "-g TdiPin:PullUp\n";
+	utFile << "-g TdoPin:PullUp\n";
+	utFile << "-g TmsPin:PullUp\n";
+	utFile << "-g UnusedPin:PullDown\n";
+	utFile << "-g UserID:0xFFFFFFFF\n";
+	utFile << "-g DCMShutdown:Disable\n";
+	utFile << "-g StartUpClk:CClk\n";
+	utFile << "-g DONE_cycle:4\n";
+	utFile << "-g GTS_cycle:5\n";
+	utFile << "-g GWE_cycle:6\n";
+	utFile << "-g LCK_cycle:NoWait\n";
+	utFile << "-g Security:None\n";
+	utFile << "-g DonePipe:Yes\n";
+	utFile << "-g DriveDone:No\n";
+	utFile.close();
 }
 
 void deleteResources(std::set<std::string> files) {
@@ -225,11 +251,23 @@ int main()
 	convertSchematicToHDL();
 	std::wstring xstPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\xst.exe";
 	std::wstring ngdPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\ngdbuild.exe";
+	std::wstring mapPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\map.exe";
+	std::wstring trcePath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\trce.exe";
+	std::wstring parPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\par.exe";
+	std::wstring bitgenPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\bitgen.exe";
 	std::wstring xstArgs = L"-ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr";
 	std::wstring ngdArgs = L"-dd _ngo -nt timestamp -uc item.ucf -p xa3s100e-vqg100-4 item.ngc item.ngd";
+	std::wstring mapArgs = L"-p xa3s100e-vqg100-4 -cm area -ir off -pr off -c 100 -o item_map.ncd item.ngd item.pcf";
+	std::wstring parArgs = L"-ol high -t 1 item_map.ncd item.ncd item.pcf";
+	std::wstring trceArgs = L"-v 3 -s 4 -n 3 -fastpaths -xml item.twx item.ncd -o item.twr item.pcf -ucf item.ucf";
+	std::wstring bitgenArgs = L"-f item.ut item.ncd";
 	ExecuteProcess(xstPath, xstArgs, 10);
 	ExecuteProcess(ngdPath, ngdArgs, 10);
-	std::set<std::string> afterNGD = listOfFiles("afterNGD.txt");
+	ExecuteProcess(mapPath, mapArgs, 10);
+	ExecuteProcess(parPath, parArgs, 10);
+	ExecuteProcess(trcePath, trceArgs, 10);
+	ExecuteProcess(bitgenPath, bitgenArgs, 10);
+	std::set<std::string> afterNGD = listOfFiles("finishedFileList.txt");
 	std::set<std::string> result;
 	result = setDifferences(initialSet, afterNGD);
 	deleteResources(result);

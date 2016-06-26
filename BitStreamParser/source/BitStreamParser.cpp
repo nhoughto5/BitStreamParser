@@ -6,15 +6,17 @@
 #include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
 #include <iostream>
 #include <fstream>
-#include <sddl.h>
 #include <windows.h>
 #include <AccCtrl.h>
 #include <Aclapi.h>
+#include <strsafe.h>
 #include <set>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <boost/filesystem.hpp>
+#include "Synthesizer.h"
+#include "BitStreamAnalyzer.h"
 
 //Command Line : sch2hdl -batch C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/sch2HdlBatchFile
 //Command Line : xst -ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr
@@ -28,11 +30,11 @@
 std::string path = "C:\\Users\\Nick\\Desktop\\NickTop\\HomeWork\\MASc\\FPGAAutomationImplementation\\BitStreamParser\\BitStreamParser\\Xilinx\\SingleItemTest\\";
 std::wstring wPath = L"C:\\Users\\Nick\\Desktop\\NickTop\\HomeWork\\MASc\\FPGAAutomationImplementation\\BitStreamParser\\BitStreamParser\\Xilinx\\SingleItemTest\\";;
 
+
 void convertSchematicToHDL() {
 	printf("Executing sch2hdl\n");
 	system(("sch2hdl -batch " + path + "sch2HdlBatchFile").c_str());
 }
-
 size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters, size_t SecondsToWait)
 {
 	size_t iMyCounter = 0, iReturnVal = 0, iPos = 0;
@@ -105,6 +107,10 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters, size_
 	return iReturnVal;
 }
 
+void runXilinxTool(std::wstring FullPathToExe, std::wstring Parameters, size_t SecondsToWait) {
+	Synthesizer syn;
+	syn.runTool(FullPathToExe, Parameters, SecondsToWait);
+}
 void makeDirectories() {
 	std::string outputFolder = path + "xst";
 	CreateDirectoryA(outputFolder.c_str(), NULL);
@@ -209,10 +215,6 @@ void makeInitFiles() {
 }
 
 void deleteResources(std::set<std::string> files) {
-	//std::remove((path + "item.prj").c_str());
-	//std::remove((path + "item.syr").c_str());
-	//std::remove((path + "item.xst").c_str());
-	//std::remove((path + "item.vhf").c_str());
 	for (std::set<std::string>::iterator it = files.begin(); it != files.end(); ++it) {
 		boost::filesystem::remove_all((path + *it).c_str());
 	}
@@ -240,14 +242,18 @@ std::set<std::string> setDifferences(std::set<std::string> a, std::set<std::stri
 	set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), inserter(result, result.begin()));
 	return result;
 }
-int main()
-{
-	printf("Checking if processor is available...");
-	if (system(NULL)) puts("Ok");
-	else exit(EXIT_FAILURE);
-	std::set<std::string> initialSet = listOfFiles("initialFiles.txt");
-	makeDirectories();
-	makeInitFiles();
+void incrementUCF() {
+	std::set<std::string> files;
+	files.insert("item.ucf");
+	deleteResources(files);
+	std::ofstream ucfFile;
+	ucfFile.open(path + "item.ucf");
+	int xValue = 0, yValue = 43;
+	ucfFile << "INST \"XLXI_11\" BEL = F;\n";
+	ucfFile << "INST \"XLXI_11\" LOC = SLICE_X" << xValue << "Y" << yValue <<";";
+	ucfFile.close();
+}
+bool synthesizeDesign() {
 	convertSchematicToHDL();
 	std::wstring xstPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\xst.exe";
 	std::wstring ngdPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\ngdbuild.exe";
@@ -267,8 +273,25 @@ int main()
 	ExecuteProcess(parPath, parArgs, 10);
 	ExecuteProcess(trcePath, trceArgs, 10);
 	ExecuteProcess(bitgenPath, bitgenArgs, 10);
+	return true;
+}
+void readBitFile() {
+	BitStreamAnalyzer bitAn;
+	bitAn.readBitFile(path + "item.bin");
+}
+int main()
+{
+	printf("Checking if processor is available...");
+	if (system(NULL)) puts("Ok");
+	else exit(EXIT_FAILURE);
+	std::set<std::string> initialSet = listOfFiles("initialFiles.txt");
+	makeDirectories();
+	makeInitFiles();
+	incrementUCF();
+	synthesizeDesign();
 	std::set<std::string> afterNGD = listOfFiles("finishedFileList.txt");
 	std::set<std::string> result;
+	readBitFile();
 	result = setDifferences(initialSet, afterNGD);
 	deleteResources(result);
 	return 0;

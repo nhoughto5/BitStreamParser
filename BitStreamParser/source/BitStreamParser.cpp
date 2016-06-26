@@ -278,6 +278,7 @@ bool synthesizeDesign() {
 void readBitFile() {
 	BitStreamAnalyzer bitAn;
 	bitAn.readBitFile(path + "item.bin");
+	std::vector<int> result = bitAn.getByteOffSet("C001");
 }
 int main()
 {

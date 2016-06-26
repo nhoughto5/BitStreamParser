@@ -1,16 +1,11 @@
 #include "stdafx.h"
 #include <stdio.h>
-#include <ctype.h>
 #include <iomanip>
-#include <unordered_map>
 #include "CoutRedirect.h"
 #include "BitStreamAnalyzer.h"
-#define BUFFER_CAPACITY 512
-
 BitStreamAnalyzer::BitStreamAnalyzer()
 {
 }
-
 
 BitStreamAnalyzer::~BitStreamAnalyzer()
 {
@@ -32,21 +27,33 @@ void BitStreamAnalyzer::readBitFile(std::string binFilePath) {
 	}
 	std::string content = buffer.str();
 	int strL = content.length();
+
+	//Split file into vector of bytes
 	for (int i = 0; i < strL; i += 2) {
-		hexValues.push_back(content.substr(i,2));
+		hexByteValues.push_back(content.substr(i,2));
 	}
 	buffer.clear();
 	content.clear();
 	return;
 }
 
-void binary_to_string(const unsigned char* source, unsigned int length, std::string& destination)
-{
-	destination.clear();
-	for (unsigned int i = 0; i < length; i++)
-	{
-		char digit[3];
-		sprintf(digit, "%02x", source[i]);
-		destination.append(digit);
+std::vector<int> BitStreamAnalyzer::getByteOffSet(std::string keyWord) {
+	int keyWordLength = keyWord.length();
+	std::vector<int> results;
+	if (keyWordLength % 2 != 0) {
+		std::cerr << "BitFile Search Keyword is not a multiple of a bytes\n";
+		exit(0);
 	}
+	int numBytesKeyword = keyWordLength / 2;
+	std::string temp;
+	for (int i = 0; i < hexByteValues.size() - numBytesKeyword; ++i) {
+		for (int j = 0; j < numBytesKeyword; ++j) {
+			temp += hexByteValues[i + j];
+		}
+		if (boost::iequals(temp, keyWord)) {
+			results.push_back(i);
+		}
+		temp.clear();
+	}
+	return results;
 }

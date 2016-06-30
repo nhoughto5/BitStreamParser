@@ -15,8 +15,12 @@
 #include <algorithm>
 #include <iterator>
 #include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Synthesizer.h"
 #include "BitStreamAnalyzer.h"
+#include "addressLibrary.h"
+#include "Device.h"
+#include "structs.h"
 
 //Command Line : sch2hdl -batch C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/sch2HdlBatchFile
 //Command Line : xst -ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr
@@ -29,7 +33,7 @@
 
 std::string path = "C:\\Users\\Nick\\Desktop\\NickTop\\HomeWork\\MASc\\FPGAAutomationImplementation\\BitStreamParser\\BitStreamParser\\Xilinx\\SingleItemTest\\";
 std::wstring wPath = L"C:\\Users\\Nick\\Desktop\\NickTop\\HomeWork\\MASc\\FPGAAutomationImplementation\\BitStreamParser\\BitStreamParser\\Xilinx\\SingleItemTest\\";;
-
+std::set<std::string> initialFileList;
 
 void convertSchematicToHDL() {
 	printf("Executing sch2hdl\n");
@@ -88,7 +92,7 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters, size_
 		&piProcessInfo) != false)
 	{
 		/* Watch the process. */
-		dwExitCode = WaitForSingleObject(piProcessInfo.hProcess, (SecondsToWait * 1000));
+		dwExitCode = WaitForSingleObject(piProcessInfo.hProcess, INFINITE);
 	}
 	else
 	{
@@ -101,6 +105,7 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters, size_
 	pwszParam = 0;
 
 	/* Release handles */
+	TerminateProcess(piProcessInfo.hProcess, 1);
 	CloseHandle(piProcessInfo.hProcess);
 	CloseHandle(piProcessInfo.hThread);
 
@@ -216,7 +221,12 @@ void makeInitFiles() {
 
 void deleteResources(std::set<std::string> files) {
 	for (std::set<std::string>::iterator it = files.begin(); it != files.end(); ++it) {
-		boost::filesystem::remove_all((path + *it).c_str());
+		try {
+			boost::filesystem::remove_all((path + *it).c_str());
+		}
+		catch(const std::exception& e){
+
+		}
 	}
 }
 std::set<std::string> listOfFiles(std::string fileName) {
@@ -234,6 +244,8 @@ std::set<std::string> listOfFiles(std::string fileName) {
 		std::cerr << "Failed to open " + fileName + "\n";
 		exit(0);
 	}
+	tempFile.clear();
+	tempFile.close();
 	return fileNameSet;
 }
 std::set<std::string> setDifferences(std::set<std::string> a, std::set<std::string> b) {
@@ -242,32 +254,23 @@ std::set<std::string> setDifferences(std::set<std::string> a, std::set<std::stri
 	set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), inserter(result, result.begin()));
 	return result;
 }
-void incrementUCF() {
-	std::set<std::string> files;
-	files.insert("item.ucf");
-	deleteResources(files);
-	std::ofstream ucfFile;
-	ucfFile.open(path + "item.ucf");
-	int xValue = 0, yValue = 43;
-	ucfFile << "INST \"XLXI_11\" BEL = F;\n";
-	ucfFile << "INST \"XLXI_11\" LOC = SLICE_X" << xValue << "Y" << yValue <<";";
-	ucfFile.close();
-}
-bool synthesizeDesign() {
+void initialSynthesis() {
 	convertSchematicToHDL();
 	std::wstring xstPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\xst.exe";
+	std::wstring xstArgs = L"-intstyle silent -ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr";
+	ExecuteProcess(xstPath, xstArgs, 10);
+}
+bool synthesizeDesign() {
 	std::wstring ngdPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\ngdbuild.exe";
 	std::wstring mapPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\map.exe";
 	std::wstring trcePath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\trce.exe";
 	std::wstring parPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\par.exe";
 	std::wstring bitgenPath = L"C:\\Xilinx\\14.7\\ISE_DS\\ISE\\bin\\nt\\bitgen.exe";
-	std::wstring xstArgs = L"-ifn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.xst -ofn C:/Users/Nick/Desktop/NickTop/HomeWork/MASc/FPGAAutomationImplementation/BitStreamParser/BitStreamParser/Xilinx/SingleItemTest/item.syr";
-	std::wstring ngdArgs = L"-dd _ngo -nt timestamp -uc item.ucf -p xa3s100e-vqg100-4 item.ngc item.ngd";
-	std::wstring mapArgs = L"-p xa3s100e-vqg100-4 -cm area -ir off -pr off -c 100 -o item_map.ncd item.ngd item.pcf";
-	std::wstring parArgs = L"-ol high -t 1 item_map.ncd item.ncd item.pcf";
-	std::wstring trceArgs = L"-v 3 -s 4 -n 3 -fastpaths -xml item.twx item.ncd -o item.twr item.pcf -ucf item.ucf";
-	std::wstring bitgenArgs = L"-f item.ut item.ncd";
-	ExecuteProcess(xstPath, xstArgs, 10);
+	std::wstring ngdArgs = L"-intstyle silent -quiet -dd _ngo -nt timestamp -uc item.ucf -p xa3s100e-vqg100-4 item.ngc item.ngd";
+	std::wstring mapArgs = L"-intstyle silent -p xa3s100e-vqg100-4 -cm area -ir off -pr off -c 100 -o item_map.ncd item.ngd item.pcf";
+	std::wstring parArgs = L"-intstyle silent -ol high -t 1 item_map.ncd item.ncd item.pcf";
+	std::wstring trceArgs = L"-intstyle silent -v 3 -s 4 -n 3 -fastpaths -xml item.twx item.ncd -o item.twr item.pcf -ucf item.ucf";
+	std::wstring bitgenArgs = L"-intstyle silent -f item.ut item.ncd";
 	ExecuteProcess(ngdPath, ngdArgs, 10);
 	ExecuteProcess(mapPath, mapArgs, 10);
 	ExecuteProcess(parPath, parArgs, 10);
@@ -275,25 +278,88 @@ bool synthesizeDesign() {
 	ExecuteProcess(bitgenPath, bitgenArgs, 10);
 	return true;
 }
-void readBitFile() {
+int readBitFile(std::string targetPattern) {
 	BitStreamAnalyzer bitAn;
 	bitAn.readBitFile(path + "item.bin");
-	std::vector<int> result = bitAn.getByteOffSet("C001");
+	std::vector<int> result = bitAn.getByteOffSet(targetPattern);
+	if (result.size() != 1) {
+		return -1;
+	}
+	else {
+		return result[0];
+	}
+}
+void updateUCF(Coordinate coordinate) {
+	std::set<std::string> files;
+	files.insert("item.ucf");
+	deleteResources(files);
+	std::ofstream ucfFile;
+	ucfFile.open(path + "item.ucf");
+	ucfFile << "INST \"XLXI_11\" BEL = F;\n";
+	ucfFile << "INST \"XLXI_11\" LOC = SLICE_X" << coordinate.X << "Y" << coordinate.Y << ";";
+	ucfFile.close();
+}
+int getLUTOffset(DeviceType deviceType, Coordinate coordinate) {
+	updateUCF(coordinate);
+	synthesizeDesign();
+	return readBitFile("FF FF FA FA");
+}
+void cleanUP() {
+	std::set<std::string> afterSynthesis = listOfFiles("finishedFileList.txt");
+	std::set<std::string> result;
+	result = setDifferences(initialFileList, afterSynthesis);
+	deleteResources(result);
+	try {
+		boost::filesystem::remove_all("finishedFileList.txt");
+	}
+	catch (const std::exception& e) {
+
+	}
+}
+void locateLUTs() {
+	Device sparten3E100;
+	addressLibrary lib;
+	sparten3E100.setDevice_Xa3s100E();
+	std::vector<Coordinate> LUTCoordinates = sparten3E100.getLUTCoordinates();
+	initialSynthesis();
+
+	std::ofstream libraryFile;
+	libraryFile.open("libraryFile.txt");
+	namespace pt = boost::posix_time;
+	pt::ptime now = pt::second_clock::local_time();
+	std::stringstream ss;
+	ss << static_cast<int>(now.date().month()) << "/" << now.date().day() << "/" << now.date().year() << ": " << now.time_of_day() << "\n";
+	libraryFile << "Analysis Began At: " << ss.str() << std::endl;
+	ss.clear();
+	int i = 0, t;
+	libraryFile << "#   deviceType   offset   SliceCoordinate     time\n";
+	for (std::vector<Coordinate>::const_iterator it = LUTCoordinates.begin(); it != LUTCoordinates.end(); ++it) {
+		initialFileList = listOfFiles("initialFiles.txt");
+		t = getLUTOffset(F_LUT, *it);
+		lib.addEntry(F_LUT, t, *it);
+		libraryFile << i << " " << "F_LUT" << "    " << t << " SLICE_X" << it->X << "Y" << it->Y << "   " << pt::second_clock::local_time().time_of_day() << std::endl;
+		++i;
+		cleanUP();
+	}
+	
+	std::vector<libraryEntry> lutLibrary = lib.getLibrary();
+	now = pt::second_clock::local_time();
+	ss << static_cast<int>(now.date().month()) << "/" << now.date().day() << "/" << now.date().year() << ": " << now.time_of_day() << "\n";
+	libraryFile.open("libraryFile.txt");
+	libraryFile << "File Finished at " << ss.str() << std::endl;
+	libraryFile.close();
 }
 int main()
 {
 	printf("Checking if processor is available...");
 	if (system(NULL)) puts("Ok");
 	else exit(EXIT_FAILURE);
-	std::set<std::string> initialSet = listOfFiles("initialFiles.txt");
 	makeDirectories();
 	makeInitFiles();
-	incrementUCF();
-	synthesizeDesign();
+	locateLUTs();
 	std::set<std::string> afterNGD = listOfFiles("finishedFileList.txt");
 	std::set<std::string> result;
-	readBitFile();
-	result = setDifferences(initialSet, afterNGD);
+	result = setDifferences(initialFileList, afterNGD);
 	deleteResources(result);
 	return 0;
 }

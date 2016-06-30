@@ -140,13 +140,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\addressLibrary.h" />
+    <ClInclude Include="include\Device.h" />
     <ClInclude Include="include\BitStreamAnalyzer.h" />
     <ClInclude Include="include\CoutRedirect.h" />
+    <ClInclude Include="include\enums.h" />
     <ClInclude Include="include\stdafx.h" />
+    <ClInclude Include="include\structs.h" />
     <ClInclude Include="include\Synthesizer.h" />
     <ClInclude Include="include\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\addressLibrary.cpp" />
+    <ClCompile Include="source\Device.cpp" />
     <ClCompile Include="source\BitStreamAnalyzer.cpp" />
     <ClCompile Include="source\BitStreamParser.cpp" />
     <ClCompile Include="source\stdafx.cpp">

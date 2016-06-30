@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include <iomanip>
+#include <algorithm>
 #include "CoutRedirect.h"
 #include "BitStreamAnalyzer.h"
 BitStreamAnalyzer::BitStreamAnalyzer()
@@ -38,6 +39,8 @@ void BitStreamAnalyzer::readBitFile(std::string binFilePath) {
 }
 
 std::vector<int> BitStreamAnalyzer::getByteOffSet(std::string keyWord) {
+	//std::remove_if(keyWord.begin(), keyWord.end(), isspace);
+	keyWord.erase(std::remove(keyWord.begin(), keyWord.end(), ' '), keyWord.end());
 	int keyWordLength = keyWord.length();
 	std::vector<int> results;
 	if (keyWordLength % 2 != 0) {

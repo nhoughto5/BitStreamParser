@@ -1,10 +1,7 @@
 #pragma once
 #include <vector>
 #include <set>
-struct coordinate {
-	int X;
-	int Y;
-};
+#include "structs.h"
 class Device
 {
 public:
@@ -12,8 +9,13 @@ public:
 	~Device();
 
 	void setDevice_Xa3s100E();
+	std::vector<Coordinate> getLUTCoordinates();
+	int getMaxX(), getMaxY();
 private:
-	std::vector<coordinate> LUTCoordinates;
+	std::vector<Coordinate> LUTCoordinates;
+	std::vector<Coordinate> missingAddresses;
+	bool containsCoordinate(int x, int y);
+	int maxX, maxY;
 
 };
 

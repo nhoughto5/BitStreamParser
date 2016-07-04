@@ -11,6 +11,7 @@
 #include <Aclapi.h>
 #include <strsafe.h>
 #include <set>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -337,23 +338,46 @@ void locateLUTs() {
 	libraryFile << "Analysis Began At: " << ss.str() << std::endl;
 	ss.clear();
 	int i = 0;
-	lutOffsetResponse t;
-	libraryFile << "#   deviceType   offset   SliceCoordinate   hexCode  time\n";
+	lutOffsetResponse t0, t1;
+	libraryFile << "#   deviceType   offset   SliceCoordinate   hexCode       time\n";
+	const char seperator = ' ';
+	const int numWidth = 4;
+	const int deviceTypeWidth = 13;
+	const int offsetWidth = 8;
+	const int sliceCoordinateWidth = 19;
+	const int hexCodeWidth = 14;
+	const int timeWidth = 16;
 	for (std::vector<Coordinate>::const_iterator it = LUTCoordinates.begin(); it != LUTCoordinates.end(); ++it) {
 		//F_LUT
 		initialFileList = listOfFiles("initialFiles.txt");
-		t = getLUTOffset(F_LUT, *it);
-		lib.addEntry(F_LUT, t, *it);
-		libraryFile << i << " " << "F_LUT" << "    " << t.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t.hexCode << "      " << pt::second_clock::local_time().time_of_day() << std::endl;
+		t0 = getLUTOffset(F_LUT, *it);
+		lib.addEntry(F_LUT, t0, *it);
+		//libraryFile << i << " " << "F_LUT" << "    " << t0.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t0.hexCode << "      " << pt::second_clock::local_time().time_of_day() << std::endl;
+
+		libraryFile
+			<< std::left << std::setw(numWidth) << std::setfill(seperator) << i
+			<< std::left << std::setw(deviceTypeWidth) << std::setfill(seperator) << "F_LUT"
+			<< std::left << std::setw(offsetWidth) << std::setfill(seperator) << t0.offset
+			<< std::left << std::setw(sliceCoordinateWidth) << std::setfill(seperator) << " SLICE_X" + std::to_string(it->X) + "Y" + std::to_string(it->Y)
+			<< std::left << std::setw(hexCodeWidth) << std::setfill(seperator) << t0.hexCode
+			<< std::left << std::setw(timeWidth) << std::setfill(seperator) << pt::second_clock::local_time().time_of_day() << std::endl;
+
 		++i;
 		cleanUP();
 
 
 		//G_LUT
 		initialFileList = listOfFiles("initialFiles.txt");
-		t = getLUTOffset(G_LUT, *it);
-		lib.addEntry(G_LUT, t, *it);
-		libraryFile << i << " " << "G_LUT" << "    " << t.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t.hexCode << "      "<< pt::second_clock::local_time().time_of_day() << std::endl;
+		t1 = getLUTOffset(G_LUT, *it);
+		lib.addEntry(G_LUT, t1, *it);
+		//libraryFile << i << " " << "G_LUT" << "    " << t1.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t1.hexCode << "      "<< pt::second_clock::local_time().time_of_day() << std::endl;
+		libraryFile
+			<< std::left << std::setw(numWidth) << std::setfill(seperator) << i
+			<< std::left << std::setw(deviceTypeWidth) << std::setfill(seperator) << "G_LUT"
+			<< std::left << std::setw(offsetWidth) << std::setfill(seperator) << t1.offset
+			<< std::left << std::setw(sliceCoordinateWidth) << std::setfill(seperator) << " SLICE_X" + std::to_string(it->X) + "Y" + std::to_string(it->Y)
+			<< std::left << std::setw(hexCodeWidth) << std::setfill(seperator) << t1.hexCode
+			<< std::left << std::setw(timeWidth) << std::setfill(seperator) << pt::second_clock::local_time().time_of_day() << std::endl;
 		++i;
 		cleanUP();
 	}

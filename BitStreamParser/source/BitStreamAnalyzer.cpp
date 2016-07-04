@@ -47,36 +47,36 @@ lutOffsetResponse BitStreamAnalyzer::getByteOffSet() {
 		for (int j = 0; j < numBytesKeyword; ++j) {
 			temp += hexByteValues[i + j];
 		}
-		if (boost::iequals(temp, LUT_Hex_Codes[0])) {
+		if (boost::iequals(temp, "FFF0FFFF")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FF F0 FF FF";
 		}
-		else if (boost::iequals(temp, LUT_Hex_Codes[1])) {
+		else if (boost::iequals(temp, "FFFFFAFA")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FF FF FA FA";
 		}
-		else if (boost::iequals(temp, LUT_Hex_Codes[2])) {
+		else if (boost::iequals(temp, "FAFAFFFF")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FA FA FF FF";
 		}
-		else if (boost::iequals(temp, LUT_Hex_Codes[3])) {
+		else if (boost::iequals(temp, "FFFFFFCC")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FF FF FF CC";
 		}
-		else if (boost::iequals(temp, LUT_Hex_Codes[4])) {
+		else if (boost::iequals(temp, "FFCCFFFF")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FF CC FF FF";
 		}
-		else if (boost::iequals(temp, LUT_Hex_Codes[5])) {
+		else if (boost::iequals(temp, "FCFCFFFF")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FC FC FF FF";
 		}
-		else if (boost::iequals(temp, LUT_Hex_Codes[6])) {
+		else if (boost::iequals(temp, "FFFFFCFC")) {
 			results.push_back(i);
-			stringRet = temp;
+			stringRet = "FF FF FC FC";
 		}
 		else {
-			stringRet = "NA";
+			
 		}
 		temp.clear();
 	}
@@ -84,6 +84,7 @@ lutOffsetResponse BitStreamAnalyzer::getByteOffSet() {
 	int intRet;
 	if (results.size() != 1) {
 		intRet = -1;
+		stringRet = "NA";
 	}
 	else intRet = results[0];
 	lutOffsetResponse ret;

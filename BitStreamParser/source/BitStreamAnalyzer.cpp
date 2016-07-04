@@ -75,6 +75,18 @@ lutOffsetResponse BitStreamAnalyzer::getByteOffSet() {
 			results.push_back(i);
 			stringRet = "FF FF FC FC";
 		}
+		else if (boost::iequals(temp, "FFFFEEEE")) {
+			results.push_back(i);
+			stringRet = "FF FF EE EE";
+		}
+		else if (boost::iequals(temp, "EEEEFFFF")) {
+			results.push_back(i);
+			stringRet = "EE EE FF FF";
+		}
+		else if (boost::iequals(temp, "EEEEFFFF")) {
+			results.push_back(i);
+			stringRet = "FF FF FF F0";
+		}
 		else {
 			
 		}

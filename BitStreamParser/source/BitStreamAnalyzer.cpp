@@ -83,9 +83,17 @@ lutOffsetResponse BitStreamAnalyzer::getByteOffSet() {
 			results.push_back(i);
 			stringRet = "EE EE FF FF";
 		}
-		else if (boost::iequals(temp, "EEEEFFFF")) {
+		else if (boost::iequals(temp, "FFFFFFF0")) {
 			results.push_back(i);
 			stringRet = "FF FF FF F0";
+		}
+		else if (boost::iequals(temp, "FFAAFFFF")) {
+			results.push_back(i);
+			stringRet = "FF AA FF FF";
+		}
+		else if (boost::iequals(temp, "FFFFFFAA")) {
+			results.push_back(i);
+			stringRet = "FF FF FF AA";
 		}
 		else {
 			
@@ -94,11 +102,21 @@ lutOffsetResponse BitStreamAnalyzer::getByteOffSet() {
 	}
 
 	int intRet;
-	if (results.size() != 1) {
+
+	if (results.size() > 1) {
+		if (std::find(results.begin(), results.end(), 1) != results.end()) {
+			results.erase(std::remove(results.begin(), results.end(), 1), results.end());
+		}
+		else {
+			intRet = -1;
+			stringRet = "NA";
+		}		
+	}
+	if (results.size() < 1) {
 		intRet = -1;
 		stringRet = "NA";
 	}
-	else intRet = results[0];
+	intRet = results[0];
 	lutOffsetResponse ret;
 	ret.offset = intRet;
 	ret.hexCode = stringRet;

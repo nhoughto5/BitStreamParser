@@ -10,7 +10,7 @@ public:
 	addressLibrary();
 	~addressLibrary();
 
-	void addEntry(DeviceType deviceType, int offset, Coordinate xyCoordinate, std::string location = "NA", DeviceConfiguration deviceConfig = NONE);
+	void addEntry(DeviceType deviceType, lutOffsetResponse offset, Coordinate xyCoordinate, std::string location = "NA", DeviceConfiguration deviceConfig = NONE);
 	std::vector<libraryEntry> getLibrary();
 private:
 	std::vector<libraryEntry> library;

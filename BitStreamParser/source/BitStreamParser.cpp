@@ -278,31 +278,36 @@ bool synthesizeDesign() {
 	ExecuteProcess(bitgenPath, bitgenArgs, 10);
 	return true;
 }
-int readBitFile(std::string targetPattern) {
+lutOffsetResponse readBitFile() {
 	BitStreamAnalyzer bitAn;
 	bitAn.readBitFile(path + "item.bin");
-	std::vector<int> result = bitAn.getByteOffSet(targetPattern);
-	if (result.size() != 1) {
-		return -1;
-	}
-	else {
-		return result[0];
-	}
+	return bitAn.getByteOffSet();
 }
-void updateUCF(Coordinate coordinate) {
+void updateUCF(DeviceType deviceType, Coordinate coordinate) {
 	std::set<std::string> files;
 	files.insert("item.ucf");
 	deleteResources(files);
 	std::ofstream ucfFile;
 	ucfFile.open(path + "item.ucf");
-	ucfFile << "INST \"XLXI_11\" BEL = F;\n";
+
+	if (deviceType == F_LUT) {
+		ucfFile << "INST \"XLXI_11\" BEL = F;\n";
+	}
+	else if (deviceType == G_LUT)
+	{
+		ucfFile << "INST \"XLXI_11\" BEL = G;\n";
+	}
+	else {
+		std::cerr << "Error in updateUCF: Incorrect Device Type\n";
+		exit(1);
+	}
 	ucfFile << "INST \"XLXI_11\" LOC = SLICE_X" << coordinate.X << "Y" << coordinate.Y << ";";
 	ucfFile.close();
 }
-int getLUTOffset(DeviceType deviceType, Coordinate coordinate) {
-	updateUCF(coordinate);
+lutOffsetResponse getLUTOffset(DeviceType deviceType, Coordinate coordinate) {
+	updateUCF(deviceType, coordinate);
 	synthesizeDesign();
-	return readBitFile("FF FF FA FA");
+	return readBitFile();
 }
 void cleanUP() {
 	std::set<std::string> afterSynthesis = listOfFiles("finishedFileList.txt");
@@ -331,13 +336,24 @@ void locateLUTs() {
 	ss << static_cast<int>(now.date().month()) << "/" << now.date().day() << "/" << now.date().year() << ": " << now.time_of_day() << "\n";
 	libraryFile << "Analysis Began At: " << ss.str() << std::endl;
 	ss.clear();
-	int i = 0, t;
-	libraryFile << "#   deviceType   offset   SliceCoordinate     time\n";
+	int i = 0;
+	lutOffsetResponse t;
+	libraryFile << "#   deviceType   offset   SliceCoordinate   hexCode  time\n";
 	for (std::vector<Coordinate>::const_iterator it = LUTCoordinates.begin(); it != LUTCoordinates.end(); ++it) {
+		//F_LUT
 		initialFileList = listOfFiles("initialFiles.txt");
 		t = getLUTOffset(F_LUT, *it);
 		lib.addEntry(F_LUT, t, *it);
-		libraryFile << i << " " << "F_LUT" << "    " << t << " SLICE_X" << it->X << "Y" << it->Y << "   " << pt::second_clock::local_time().time_of_day() << std::endl;
+		libraryFile << i << " " << "F_LUT" << "    " << t.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t.hexCode << "      " << pt::second_clock::local_time().time_of_day() << std::endl;
+		++i;
+		cleanUP();
+
+
+		//G_LUT
+		initialFileList = listOfFiles("initialFiles.txt");
+		t = getLUTOffset(G_LUT, *it);
+		lib.addEntry(G_LUT, t, *it);
+		libraryFile << i << " " << "G_LUT" << "    " << t.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t.hexCode << "      "<< pt::second_clock::local_time().time_of_day() << std::endl;
 		++i;
 		cleanUP();
 	}

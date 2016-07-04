@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include "structs.h"
 class BitStreamAnalyzer
 {
 public:
@@ -10,8 +11,9 @@ public:
 	~BitStreamAnalyzer();
 
 	void readBitFile(std::string binFilePath);
-	std::vector<int> getByteOffSet(std::string keyWord);
+	lutOffsetResponse getByteOffSet();
 private:
 	std::vector<std::string> hexByteValues;
+	const char *LUT_Hex_Codes[7] = { "FFF0FFFF","FFFFFAFA","FAFAFFFF", "FFFFFFCC", "FFCCFFFF", "FCFCFFFF", "FFFFFCFC" };
 };
 

@@ -12,15 +12,6 @@ Device::~Device()
 }
 
 bool Device::containsCoordinate(int x_, int y_) {
-	//auto target = coordinate(x, y);
-	//if (std::find(missingAddresses.begin(), missingAddresses.end(), target) != missingAddresses.end()) {
-	//	/* v contains x */
-	//	return true;
-	//}
-	//else {
-	//	/* v does not contain x */
-	//	return false;
-	//}
 	for (std::vector<Coordinate>::const_iterator it = missingAddresses.begin(); it != missingAddresses.end(); ++it) {
 		if ((it->X == x_) && (it->Y == y_) ) {
 			return true;

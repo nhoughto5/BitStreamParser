@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "CoutRedirect.h"
 #include "BitStreamAnalyzer.h"
+#include "enums.h"
 BitStreamAnalyzer::BitStreamAnalyzer()
 {
 }
@@ -16,9 +17,8 @@ void BitStreamAnalyzer::readBitFile(std::string binFilePath) {
 	std::clock_t    start;
 	start = std::clock();
 	using namespace std;
-	const char * inputFile = binFilePath.c_str();
 	unsigned char x;
-	std::ifstream input(inputFile, std::ios::binary);
+	std::ifstream input(binFilePath.c_str(), std::ios::binary);
 	input >> std::noskipws;
 	std::stringstream buffer;
 
@@ -38,25 +38,56 @@ void BitStreamAnalyzer::readBitFile(std::string binFilePath) {
 	return;
 }
 
-std::vector<int> BitStreamAnalyzer::getByteOffSet(std::string keyWord) {
-	//std::remove_if(keyWord.begin(), keyWord.end(), isspace);
-	keyWord.erase(std::remove(keyWord.begin(), keyWord.end(), ' '), keyWord.end());
-	int keyWordLength = keyWord.length();
+lutOffsetResponse BitStreamAnalyzer::getByteOffSet() {
 	std::vector<int> results;
-	if (keyWordLength % 2 != 0) {
-		std::cerr << "BitFile Search Keyword is not a multiple of a bytes\n";
-		exit(0);
-	}
-	int numBytesKeyword = keyWordLength / 2;
-	std::string temp;
+	int numBytesKeyword = 4;
+	std::string temp, stringRet;
+
 	for (int i = 0; i < hexByteValues.size() - numBytesKeyword; ++i) {
 		for (int j = 0; j < numBytesKeyword; ++j) {
 			temp += hexByteValues[i + j];
 		}
-		if (boost::iequals(temp, keyWord)) {
+		if (boost::iequals(temp, LUT_Hex_Codes[0])) {
 			results.push_back(i);
+			stringRet = temp;
+		}
+		else if (boost::iequals(temp, LUT_Hex_Codes[1])) {
+			results.push_back(i);
+			stringRet = temp;
+		}
+		else if (boost::iequals(temp, LUT_Hex_Codes[2])) {
+			results.push_back(i);
+			stringRet = temp;
+		}
+		else if (boost::iequals(temp, LUT_Hex_Codes[3])) {
+			results.push_back(i);
+			stringRet = temp;
+		}
+		else if (boost::iequals(temp, LUT_Hex_Codes[4])) {
+			results.push_back(i);
+			stringRet = temp;
+		}
+		else if (boost::iequals(temp, LUT_Hex_Codes[5])) {
+			results.push_back(i);
+			stringRet = temp;
+		}
+		else if (boost::iequals(temp, LUT_Hex_Codes[6])) {
+			results.push_back(i);
+			stringRet = temp;
+		}
+		else {
+			stringRet = "NA";
 		}
 		temp.clear();
 	}
-	return results;
+
+	int intRet;
+	if (results.size() != 1) {
+		intRet = -1;
+	}
+	else intRet = results[0];
+	lutOffsetResponse ret;
+	ret.offset = intRet;
+	ret.hexCode = stringRet;
+	return ret;
 }

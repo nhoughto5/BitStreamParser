@@ -15,6 +15,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <math>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Synthesizer.h"
@@ -322,6 +323,7 @@ void cleanUP() {
 
 	}
 }
+
 void locateLUTs() {
 	Device sparten3E100;
 	addressLibrary lib;
@@ -339,9 +341,9 @@ void locateLUTs() {
 	ss.clear();
 	int i = 0;
 	lutOffsetResponse t0, t1;
-	libraryFile << "#   deviceType   offset   SliceCoordinate   hexCode       time\n";
+	libraryFile << "#         deviceType   offset   SliceCoordinate   hexCode       time\n";
 	const char seperator = ' ';
-	const int numWidth = 4;
+	const int numWidth = 10;
 	const int deviceTypeWidth = 13;
 	const int offsetWidth = 8;
 	const int sliceCoordinateWidth = 19;

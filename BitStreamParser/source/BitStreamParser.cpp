@@ -15,7 +15,6 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
-#include <math>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Synthesizer.h"

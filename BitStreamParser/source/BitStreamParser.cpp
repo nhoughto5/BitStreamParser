@@ -284,13 +284,15 @@ lutOffsetResponse readBitFile() {
 	bitAn.readBitFile(path + "item.bin");
 	return bitAn.getByteOffSet();
 }
-void updateUCF(DeviceType deviceType, Coordinate coordinate) {
+void update_UCF_PCF(DeviceType deviceType, Coordinate coordinate) {
 	std::set<std::string> files;
 	files.insert("item.ucf");
+	files.insert("item.pcf");
 	deleteResources(files);
 	std::ofstream ucfFile;
 	ucfFile.open(path + "item.ucf");
-
+	ucfFile << "NET \"XLXN_8\" LOC = P2;\n";
+	ucfFile << "NET \"XLXN_7\" LOC = P3;\n";
 	if (deviceType == F_LUT) {
 		ucfFile << "INST \"XLXI_11\" BEL = F;\n";
 	}
@@ -302,11 +304,24 @@ void updateUCF(DeviceType deviceType, Coordinate coordinate) {
 		std::cerr << "Error in updateUCF: Incorrect Device Type\n";
 		exit(1);
 	}
-	ucfFile << "INST \"XLXI_11\" LOC = SLICE_X" << coordinate.X << "Y" << coordinate.Y << ";";
+	ucfFile << "INST \"XLXI_11\" LOC = SLICE_X" << coordinate.X << "Y" << coordinate.Y << ";\n";
+	ucfFile << "NET \"XLXN_6\" LOC = P98;\n";
 	ucfFile.close();
+
+	////Update PCF
+	//std::ofstream pcfFile;
+	//pcfFile.open(path + "item.pcf");
+	//pcfFile << "SCHEMATIC START;\n";
+	//pcfFile << "COMP \"XLXN_6\" LOCATE = SITE \"P98\" LEVEL 1;\n";
+	//pcfFile << "COMP \"XLXN_7\" LOCATE = SITE \"P3\" LEVEL 1;\n";
+	//pcfFile << "COMP \"XLXN_8\" LOCATE = SITE \"P2\" LEVEL 1;\n";
+	//pcfFile << "COMP \"XLXN_8_OBUF\" LOCATE = SITE \"SLICE_X0Y42\" LEVEL 1;\n";
+	//pcfFile << "SCHEMATIC END;\n";
+	//pcfFile.close();
+
 }
 lutOffsetResponse getLUTOffset(DeviceType deviceType, Coordinate coordinate) {
-	updateUCF(deviceType, coordinate);
+	update_UCF_PCF(deviceType, coordinate);
 	synthesizeDesign();
 	return readBitFile();
 }

@@ -368,7 +368,6 @@ void locateLUTs() {
 		initialFileList = listOfFiles("initialFiles.txt");
 		t0 = getLUTOffset(F_LUT, *it);
 		lib.addEntry(F_LUT, t0, *it);
-		//libraryFile << i << " " << "F_LUT" << "    " << t0.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t0.hexCode << "      " << pt::second_clock::local_time().time_of_day() << std::endl;
 
 		libraryFile
 			<< std::left << std::setw(numWidth) << std::setfill(seperator) << i
@@ -386,7 +385,6 @@ void locateLUTs() {
 		initialFileList = listOfFiles("initialFiles.txt");
 		t1 = getLUTOffset(G_LUT, *it);
 		lib.addEntry(G_LUT, t1, *it);
-		//libraryFile << i << " " << "G_LUT" << "    " << t1.offset << " SLICE_X" << it->X << "Y" << it->Y << "   " << t1.hexCode << "      "<< pt::second_clock::local_time().time_of_day() << std::endl;
 		libraryFile
 			<< std::left << std::setw(numWidth) << std::setfill(seperator) << i
 			<< std::left << std::setw(deviceTypeWidth) << std::setfill(seperator) << "G_LUT"

@@ -14,6 +14,7 @@ public:
 private:
 	std::vector<Coordinate> LUTCoordinates;
 	std::vector<Coordinate> missingAddresses;
+	std::vector<IO_Site> pinSites;
 	bool containsCoordinate(int x, int y);
 	int maxX, maxY;
 
